@@ -11,8 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-schema.prisma
-!src-tauri/prisma/schema.prisma
+/schema.prisma
 src-tauri/.env
 src-tauri/src/prismaMainClient.rs
 
