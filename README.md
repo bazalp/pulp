@@ -1,6 +1,8 @@
+<div align="center" style="text-align: center"><img src="https://raw.githubusercontent.com/bazalp/pulp/main/icons/icon-test.png" width="230" alt="2kama logo"/></div>
+
 # Pulp - Open Source Audio Sample Manager
 
-Pulp is an open source alternative to [ADSR Sample Manager](https://adsrsounds.com/sample-manager). This application allows you to scan a folder, retrieve audio files, automatically detect the audio key, and organize them effectively. In addition to being an audio sample management tool, Pulp is also an audio file explorer.
+Pulp is an open source alternative to [ADSR Sample Manager](https://www.adsrsounds.com/product/software/adsr-sample-manager/). This application allows you to scan a folder, retrieve audio files, automatically detect the audio key, and organize them effectively. In addition to being an audio sample management tool, Pulp is also an audio file explorer.
 
 ## Features
 
@@ -26,7 +28,7 @@ _for the CLI [prisma-client-rust](https://prisma.brendonovich.dev/getting-starte
 - Rename `src-tauri/.env.dist` to `src-tauri/.env` and replace `<user>` in `DATABASE_URL` (works only on macOS, need to be adapted for others).
 - Install cargo packages : `npm run cargo -- install`
 - Install npm packages : `npm install`
-- Push in db fist migration : `npm run cargo -- migrate dev --name init`.
+- Push in db fist migration : `npm run cargo -- prisma migrate dev --name init`.
 - Generate Prisma Rust Client : `npm run cargo -- prisma generate`.
 - Command helper for generate prisma client javascript with types : `npm run prisma-js -- generates`.
 - Start dev with : `npm run tauri dev` [Tauri Development Cycle](https://tauri.app/v1/guides/development/development-cycle)
