@@ -12,8 +12,13 @@ dist
 dist-ssr
 *.local
 /schema.prisma
-src-tauri/.env
-src-tauri/src/prismaMainClient.rs
+/src-tauri/.env
+/src-tauri/src/prismaMainClient.rs
+/src-tauri/target/
+/src-tauri/prisma/client/
+/src-tauri/prisma/migrations/
+/src-tauri/prisma/dev.db
+/src-tauri/prisma/dev.db-journal
 
 # Editor directories and files
 .vscode/*

@@ -61,4 +61,6 @@ We would like to thank all contributors for their support and help in developing
 - https://docs.rs/tauri/1.2.1/tauri/macro.generate_handler.html
 - https://www.prisma.io/docs/reference/api-reference/prisma-client-reference#create
 
-Multiple db : https://github.com/prisma/prisma/issues/2443
+## Machine learning
+
+- https://essentia.upf.edu/machine_learning.html and model https://essentia.upf.edu/models.html
