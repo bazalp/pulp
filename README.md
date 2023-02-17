@@ -25,7 +25,7 @@ _for the CLI [prisma-client-rust](https://prisma.brendonovich.dev/getting-starte
 
 **Starter**
 
-- Rename `src-tauri/.env.dist` to `src-tauri/.env` and replace `<user>` in `DATABASE_URL` (works only on macOS, need to be adapted for others).
+- Rename `src-tauri/.env.dist` to `src-tauri/.env` and replace `<user>` in `DATABASE_URL` for macOS (For the other OS repect `<app_data_dir>/databases/Database.db` and check documentation [here](https://tauri.app/v1/api/js/path/#appdatadir) and [there](https://docs.rs/tauri/1.2.4/tauri/struct.PathResolver.html#method.app_data_dir) and adjust `<app_data_dir>`).
 - Install cargo packages : `npm run cargo -- install`
 - Install npm packages : `npm install`
 - Push in db fist migration : `npm run cargo -- prisma migrate dev --name init`.
