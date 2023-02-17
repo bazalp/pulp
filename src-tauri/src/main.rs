@@ -3,11 +3,16 @@
   windows_subsystem = "windows"
 )]
 
-use prismaMainClient::{directory, PrismaClient};
+use std::path::Path;
+
+use prismaMainClient::{directory, file, PrismaClient};
 use prisma_client_rust::prisma_errors::query_engine::UniqueKeyViolation;
 use tauri::Manager;
+use utils::audio_utils::extract_audio_files;
+use walkdir::WalkDir;
 
 mod prismaMainClient;
+mod utils;
 
 pub struct AppState {
   pub prisma_client: PrismaClient,
@@ -43,7 +48,10 @@ async fn create_directory(
     .exec()
     .await
   {
-    Ok(directory) => return Ok(directory),
+    Ok(directory) => {
+      scan_directoy((*directory.path).to_string(), state).await;
+      return Ok(directory);
+    }
     Err(error) if error.is_prisma_error::<UniqueKeyViolation>() => {
       return Err(last_part.to_string() + " already exists")
     }
@@ -66,6 +74,41 @@ async fn delete_directory(
     Ok(directory) => return Ok(directory),
     Err(_error) => return Err("An error occurred".to_string()),
   };
+}
+
+#[tauri::command]
+async fn scan_directoy(
+  path_dir: String,
+  state: tauri::State<'_, AppState>,
+) -> Result<Vec<file::Data>, String> {
+  let mut result = Vec::new();
+  for path_file in WalkDir::new(path_dir).into_iter().filter_map(|e| e.ok()) {
+    if let Some(ext) = path_file.path().extension() {
+      if ext == "wav" || ext == "mp3" {
+        let path = path_file.path().display().to_string();
+
+        let last_part = match path_file.file_name().to_str() {
+          Some(s) => s.to_string(),
+          None => return Err(format!("Invalid file name: {:?}", path_file.file_name())),
+        };
+
+        match state
+          .prisma_client
+          .file()
+          .create(path, last_part.to_string(), vec![])
+          .exec()
+          .await
+        {
+          Ok(file) => result.push(file),
+          Err(error) if error.is_prisma_error::<UniqueKeyViolation>() => {
+            return Err(last_part.to_string() + " already exists")
+          }
+          Err(_error) => return Err("An error occurred".to_string()),
+        }
+      }
+    }
+  }
+  Ok(result)
 }
 
 #[tokio::main]

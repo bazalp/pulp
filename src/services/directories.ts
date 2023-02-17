@@ -8,6 +8,7 @@ export const [directories, setDirectories] = createStore([] as Directory[]);
 export const getAllDirectories = async (): Promise<void> => {
   console.log("getAllDirectories");
   const response: Directory[] = await invoke("get_all_directories");
+  console.log(response);
   setDirectories(response);
 };
 
