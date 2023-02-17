@@ -2,7 +2,6 @@
 const fs = require("fs");
 const path = require("path");
 const filePath = process.argv[2];
-console.log(filePath);
 
 if (!filePath) {
   console.error("No file path specified.");
@@ -18,8 +17,9 @@ if (!filePath) {
   provider = "prisma-client-js"
 }`;
 
-    console.log(path.resolve(__dirname, "..", `schema.prisma`));
-    const result = data.replace(/generator client \{.*?\}/s, newString);
+    const result = data
+      .replace(/env\("DATABASE_URL"\)/gm, `"${process.env.DATABASE_URL}"`)
+      .replace(/generator client \{.*?\}/s, newString);
 
     fs.writeFile(
       path.resolve(__dirname, "..", `schema.prisma`),
