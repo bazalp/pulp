@@ -49,7 +49,6 @@ async fn create_directory(
     .await
   {
     Ok(directory) => {
-      scan_directoy((*directory.path).to_string(), state).await;
       return Ok(directory);
     }
     Err(error) if error.is_prisma_error::<UniqueKeyViolation>() => {
@@ -66,47 +65,79 @@ async fn delete_directory(
 ) -> Result<directory::Data, String> {
   match state
     .prisma_client
-    .directory()
-    .delete(directory::path::equals(path_dir))
+    .file()
+    .delete_many(vec![file::directory_path::equals(path_dir.to_string())])
     .exec()
     .await
   {
-    Ok(directory) => return Ok(directory),
+    Ok(_file_deleted_cout) => {
+      match state
+        .prisma_client
+        .directory()
+        .delete(directory::path::equals(path_dir))
+        .exec()
+        .await
+      {
+        Ok(directory) => return Ok(directory),
+        Err(_error) => return Err("An error occurred".to_string()),
+      };
+    }
     Err(_error) => return Err("An error occurred".to_string()),
   };
 }
 
 #[tauri::command]
-async fn scan_directoy(
+async fn scan_directory(
   path_dir: String,
   state: tauri::State<'_, AppState>,
 ) -> Result<Vec<file::Data>, String> {
-  let mut result = Vec::new();
-  for path_file in WalkDir::new(path_dir).into_iter().filter_map(|e| e.ok()) {
+  let path_dir_string = path_dir.to_string();
+  let walk_dir = match WalkDir::new(&path_dir)
+    .into_iter()
+    .filter_map(|e| e.ok())
+    .collect::<Vec<_>>()
+  {
+    v if !v.is_empty() => v,
+    _ => return Err(format!("No file found in directory: {}", path_dir)),
+  };
+  let mut result = Vec::with_capacity(walk_dir.len());
+  for path_file in walk_dir {
     if let Some(ext) = path_file.path().extension() {
       if ext == "wav" || ext == "mp3" {
         let path = path_file.path().display().to_string();
-
         let last_part = match path_file.file_name().to_str() {
           Some(s) => s.to_string(),
           None => return Err(format!("Invalid file name: {:?}", path_file.file_name())),
         };
-
         match state
           .prisma_client
           .file()
-          .create(path, last_part.to_string(), vec![])
+          .create(
+            path,
+            last_part.to_string(),
+            directory::path::equals(path_dir_string.clone()),
+            vec![],
+          )
           .exec()
           .await
         {
           Ok(file) => result.push(file),
           Err(error) if error.is_prisma_error::<UniqueKeyViolation>() => {
-            return Err(last_part.to_string() + " already exists")
+            return Err(format!("File already exists: {}", last_part))
           }
-          Err(_error) => return Err("An error occurred".to_string()),
+          Err(error) => {
+            return Err(format!(
+              "Error creating file '{}': {}",
+              last_part,
+              error.to_string()
+            ))
+          }
         }
       }
     }
+  }
+  if result.is_empty() {
+    return Err(format!("No audio files found in directory: {}", path_dir));
   }
   Ok(result)
 }
@@ -147,7 +178,8 @@ async fn main() {
     .invoke_handler(tauri::generate_handler![
       get_all_directories,
       create_directory,
-      delete_directory
+      delete_directory,
+      scan_directory
     ])
     .menu(tauri::Menu::os_default(&context.package_info().name))
     .run(context)

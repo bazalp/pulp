@@ -37,6 +37,7 @@ export const deleteDirectories = async (pathsDir: string[]): Promise<void> => {
       const response: Directory = await invoke("delete_directory", {
         pathDir,
       });
+      console.log(response);
       setDirectories((prevDirectories) =>
         prevDirectories.filter((directory) => response.path !== directory.path)
       );
@@ -47,4 +48,12 @@ export const deleteDirectories = async (pathsDir: string[]): Promise<void> => {
       });
     }
   }
+};
+
+export const scanDirectory = async (pathDir: string): Promise<void> => {
+  console.log("scanDirectory");
+  const response: Directory = await invoke("scan_directory", {
+    pathDir,
+  });
+  console.log(response);
 };

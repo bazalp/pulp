@@ -21,9 +21,8 @@ model Directory {
 }
 
 model File {
-  id            Int        @id @default(autoincrement())
-  path          String
+  path          String    @id
   name          String
-  directory     Directory? @relation(fields: [directoryPath], references: [path])
-  directoryPath String?
+  directory     Directory @relation(fields: [directoryPath], references: [path])
+  directoryPath String
 }

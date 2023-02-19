@@ -14,7 +14,8 @@
     "allowlist": {
       "all": true,
       "fs": {
-        "scope": ["$HOME/*"]
+        "all": true,
+        "scope": ["$HOME/*", "$AUDIO/**"]
       },
       "dialog": {
         "all": true,

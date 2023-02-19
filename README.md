@@ -30,7 +30,7 @@ _for the CLI [prisma-client-rust](https://prisma.brendonovich.dev/getting-starte
 - Install npm packages : `npm install`
 - Push in db fist migration : `npm run cargo -- prisma migrate dev --name init`.
 - Generate Prisma Rust Client : `npm run cargo -- prisma generate`.
-- Command helper for generate prisma client javascript with types : `npm run prisma-js -- generates`.
+- Command helper for generate prisma client javascript with types : `npm run prisma-js -- generate` and `npx prisma studio` if you want see the DB.
 - Start dev with : `npm run tauri dev` [Tauri Development Cycle](https://tauri.app/v1/guides/development/development-cycle)
 
 _I created this command because unfortunately `prisma-client-rust` did not allow me to generate the javascript client. So this command is a helper to generate the prisma javascript client and take advantage of the types in the javascript code._
