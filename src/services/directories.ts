@@ -1,14 +1,24 @@
-import type { Directory } from "@prisma/client";
+import type { Directory as ClientDirectory } from "@prisma/client";
 import { invoke } from "@tauri-apps/api";
 import { message } from "@tauri-apps/api/dialog";
+import { readDir, type FileEntry } from "@tauri-apps/api/fs";
 import { createStore } from "solid-js/store";
 
+export interface Directory extends ClientDirectory {
+  name: string;
+  children?: FileEntry[];
+  collapsed?: boolean;
+}
+
 export const [directories, setDirectories] = createStore([] as Directory[]);
+
+export const [selectedDirectoies, setSelectedDirectoies] = createStore(
+  [] as string[]
+);
 
 export const getAllDirectories = async (): Promise<void> => {
   console.log("getAllDirectories");
   const response: Directory[] = await invoke("get_all_directories");
-  console.log(response);
   setDirectories(response);
 };
 
@@ -37,7 +47,6 @@ export const deleteDirectories = async (pathsDir: string[]): Promise<void> => {
       const response: Directory = await invoke("delete_directory", {
         pathDir,
       });
-      console.log(response);
       setDirectories((prevDirectories) =>
         prevDirectories.filter((directory) => response.path !== directory.path)
       );
@@ -52,8 +61,18 @@ export const deleteDirectories = async (pathsDir: string[]): Promise<void> => {
 
 export const scanDirectory = async (pathDir: string): Promise<void> => {
   console.log("scanDirectory");
-  const response: Directory = await invoke("scan_directory", {
+  await invoke("scan_directory", {
     pathDir,
   });
-  console.log(response);
+};
+
+export const loadChildrenDirectory = async (
+  pathDir: string,
+  acc: any[]
+): Promise<void> => {
+  console.log("loadChildrenDirectory");
+  const entries = await readDir(pathDir, {
+    recursive: false,
+  });
+  setDirectories(...(acc as [any]), "children", entries);
 };
