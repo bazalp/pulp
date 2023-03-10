@@ -6,7 +6,8 @@
 use std::{path::Path, process::Command};
 
 use prismaMainClient::{directory, file, PrismaClient};
-use prisma_client_rust::prisma_errors::query_engine::UniqueKeyViolation;
+use prisma_client_rust::{operator::or, prisma_errors::query_engine::UniqueKeyViolation};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use tauri::Manager;
 use walkdir::WalkDir;
 
@@ -181,6 +182,65 @@ async fn analyze_file(
     .map_err(|err| format!("Failed to update file entry in database: {}", err))
 }
 
+// #[tauri::command]
+// async fn get_directory_files(
+//   path_dir: String,
+//   files_filters: String,
+//   state: tauri::State<'_, AppState>,
+// ) -> Result<Vec<file::Data>, String> {
+//   let directory = state
+//     .prisma_client
+//     .directory()
+//     .find_unique(directory::path::equals(path_dir))
+//     .with(directory::files::fetch(vec![file::path::starts_with(
+//       files_filters,
+//     )]))
+//     .exec()
+//     .await
+//     .map_err(|e| e.to_string())?
+//     .ok_or_else(|| "Directory not found".to_string())?;
+
+//   Ok(directory.files().unwrap().to_vec())
+// }
+
+#[derive(serde::Deserialize)]
+struct SearchQuery {
+  path_dir: String,
+  files_starts_with: Vec<String>,
+}
+
+#[tauri::command]
+async fn get_directory_files(
+  paths_dir: Vec<SearchQuery>,
+  state: tauri::State<'_, AppState>,
+) -> Result<Vec<file::Data>, String> {
+  let directories = paths_dir.into_iter().map(|item| {
+    let files_starts_with = item
+      .files_starts_with
+      .into_iter()
+      .map(|s| file::path::starts_with(s))
+      .collect();
+    state
+      .prisma_client
+      .directory()
+      .find_unique(directory::path::equals(item.path_dir))
+      .with(directory::files::fetch(vec![or(files_starts_with)]))
+  });
+
+  match state.prisma_client._batch(directories).await {
+    Ok(dirs) => {
+      let files = dirs
+        .iter()
+        .flat_map(|d| d.as_ref().map(|d| &d.files).unwrap())
+        .flatten()
+        .cloned()
+        .collect();
+      Ok(files)
+    }
+    Err(error) => Err(error.to_string()),
+  }
+}
+
 #[tokio::main]
 async fn main() {
   let context = tauri::generate_context!();
@@ -218,7 +278,8 @@ async fn main() {
       get_all_directories,
       create_directory,
       delete_directory,
-      scan_directory
+      scan_directory,
+      get_directory_files
     ])
     .menu(tauri::Menu::os_default(&context.package_info().name))
     .run(context)

@@ -33,7 +33,9 @@ const AddDirectories: Component = () => {
         path={plusCircle}
         class="flex-shrink-0 w-6 h-6 mr-3 text-gray-500 transition duration-75 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
       />
-      Add directory
+      <span class="overflow-hidden overflow-ellipsis whitespace-nowrap">
+        Add directory
+      </span>
     </button>
   );
 };

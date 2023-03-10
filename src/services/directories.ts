@@ -76,3 +76,26 @@ export const loadChildrenDirectory = async (
   });
   setDirectories(...(acc as [any]), "children", entries);
 };
+
+export const getCollapsedDirectories = () => {
+  return directories.reduce((acc, directory) => {
+    const getChildren = (dir) =>
+      dir.reduce((acc, directory) => {
+        if (directory.collapsed === true) {
+          return [
+            ...acc,
+            directory.path,
+            ...getChildren(directory.children ?? []),
+          ];
+        }
+        return acc;
+      }, []);
+    if (directory.collapsed === true) {
+      return {
+        ...acc,
+        [directory.path]: getChildren(directory.children ?? []),
+      };
+    }
+    return acc;
+  }, {});
+};
